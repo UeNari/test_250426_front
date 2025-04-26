@@ -1,34 +1,68 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, useEffect } from 'react'
+import axios from 'axios'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [users, setUsers] = useState([])
+  const [name, setName] = useState('')
+  const [age, setAge] = useState('')
+
+  useEffect(() => {
+    fetchUsers()
+  }, [])
+
+  const fetchUsers = async () => {
+    try {
+      const response = await axios.get('https://recosake.prionex.net/api/users')
+      setUsers(response.data)
+    } catch (error) {
+      console.error('Error fetching users:', error)
+    }
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    try {
+      await axios.post('https://recosake.prionex.net/api/add', { name, age })
+      setName('')
+      setAge('')
+      fetchUsers() // 送信後に最新リスト取得
+    } catch (error) {
+      console.error('Error adding user:', error)
+    }
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <div style={{ padding: '20px' }}>
+      <h1>Users List</h1>
+
+      <form onSubmit={handleSubmit} style={{ marginBottom: '20px' }}>
+        <div>
+          <input
+            type="text"
+            placeholder="名前"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            style={{ marginRight: '10px' }}
+          />
+          <input
+            type="number"
+            placeholder="年齢"
+            value={age}
+            onChange={(e) => setAge(e.target.value)}
+            style={{ marginRight: '10px' }}
+          />
+          <button type="submit">追加</button>
+        </div>
+      </form>
+
+      <ul>
+        {users.map(user => (
+          <li key={user.id}>
+            {user.name}（{user.age}歳）
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }
 
